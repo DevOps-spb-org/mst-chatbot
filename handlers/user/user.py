@@ -1,51 +1,43 @@
 # by Hemenguelbindi
 from aiogram import types
-from aiogram import Dispatcher
-from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.dispatcher import FSMContext
+from filters.users import NewUser
 from loader import dp
 
 
-class FSMUser(StatesGroup):
-	"""
-	:param
-	name (str) хранит имя пользолвателя
-	position (str)  хранит дожность пользователя
-	"""
-	name = State()
-	position = State()
-	
-	
 @dp.message_handler(commands='sign', state=None)
 async def create_user(message: types.Message):
-	await FSMUser.name.set()
-	await message.reply("Введите имя в формате ФИО на русском")
+	await NewUser.name.set()
+	await message.answer("Введите имя в формате ФИО на русском")
 
 
-@dp.message_handler(state=FSMUser.name)
+@dp.message_handler(state=NewUser.name)
 async def load_name(message: types.Message, state: FSMContext):
 	async with state.proxy() as data:
 		data['name'] = message.text
-	await FSMUser.next()
-	await message.reply("Введи вашу должность")
+	await NewUser.next()
+	await message.answer("Введи вашу должность")
 
 
-@dp.message_handler(state=FSMUser.position)
+@dp.message_handler(state=NewUser.position)
 async def load_position(message: types.Message, state: FSMContext):
 	"""
 	:return: position and all input user
 	"""
 	async with state.proxy() as data:
 		data['position'] = message.text
-	async with state.proxy() as data:
-		await message.reply(str(data)) # TODO убрать и не возвращать данные пользователю
-	await message.reply("Вы успешно зарегистрированы.")
+	# async with state.proxy() as data:
+	# await message.answer(str(data)) # TODO убрать и не возвращать данные пользователю
+	await state.finish()
+	await message.answer("Вы успешно зарегистрированы.")
+	
 
 
-def register_handlers_use(dp: Dispatcher):
-	"""
-		регистрация handlers
-	"""
-	dp.register_message_handler(create_user, commands='sign', state=None)
-	dp.register_message_handler(load_name, state=FSMUser.name)
-	dp.register_message_handler(load_position, state=FSMUser.position)
+# def register_handlers_use(dp: Dispatcher):
+# 	"""
+# 		регистрация handlers
+# 	"""
+# 	dp.register_message_handler(create_user, commands='sign', state=None)
+# 	dp.register_message_handler(load_name, state=NewUser.name)
+# 	dp.register_message_handler(load_position, state=NewUser.position)
