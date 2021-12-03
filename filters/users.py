@@ -9,3 +9,9 @@ class NewUser(StatesGroup):
 	"""
 	name = State()
 	position = State()
+
+
+
+class FirstQuiz(StatesGroup):
+	points = State()
+	

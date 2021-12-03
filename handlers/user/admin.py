@@ -3,7 +3,7 @@ from aiogram import types
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
-from keyboards.common import btn_create_quiz
+from keyboards.common import btn_start_cancel
 from loader import dp, bot
 from setting.config import admin_id, admin_id_2
 from filters import AddQuiz
@@ -17,7 +17,7 @@ async def cancel(message: types.Message, state: FSMContext):
 
 @dp.message_handler(user_id=admin_id_2, commands='addquiz')
 async def add_quiz(message: types.Message):
-	await message.answer("Введите вопрос или нажмите /Отмена", reply_markup=btn_create_quiz.create_quiz)
+	await message.answer("Введите вопрос или нажмите /Отмена", reply_markup=btn_start_cancel)
 	await AddQuiz.name.set()
 
 

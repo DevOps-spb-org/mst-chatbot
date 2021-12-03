@@ -2,14 +2,25 @@
 from aiogram import types
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
-from filters.users import NewUser
+from aiogram.dispatcher.filters import Text
+from filters.users import NewUser, FirstQuiz
+from keyboards.common import btn_start_cancel
 from loader import dp
 
 
+# Начало регистрации пользователя
 @dp.message_handler(commands='sign', state=None)
 async def create_user(message: types.Message):
 	await NewUser.name.set()
-	await message.answer("Введите имя в формате ФИО на русском")
+	await message.answer("Введите имя в формате ФИО на русском", reply_markup=btn_start_cancel)
+	
+	
+@dp.message_handler(Text(equals="Отмена"), state=NewUser)
+async def cancel(message: types.Message, state: FSMContext):
+	"""Отмена регистрации"""
+	await message.answer("Вы отказались от регистрации, а жаль\
+	на есть чему вас научить", reply_markup=types.ReplyKeyboardRemove())
+	await state.reset_state()
 
 
 @dp.message_handler(state=NewUser.name)
@@ -31,11 +42,22 @@ async def load_position(message: types.Message, state: FSMContext):
 	# await message.answer(str(data)) # TODO убрать и не возвращать данные пользователю
 	await state.finish()
 	await message.answer("Вы успешно зарегистрированы.")
-	await message.answer("Теперь пройдем не большой тест, чтобы узнать проблемные зоны!")
+	await message.answer("Теперь пройдем не большой тест, чтобы узнать проблемные зоны!\
+	Что бы начать тест нажми на кнопу старт, елси нет тогда нажми отмена", reply_markup=btn_start_cancel)
+# Конец регитрации
 
 
-
+# Начало опроса
+@dp.message_handler(Text(equals='Отмена'))
+async def start_quiz(message: types.Message):
+	await message.answer("Вот не задача а вам нужно все таки пройти это!", reply_markup=types.ReplyKeyboardRemove())
 	
+	
+@dp.message_handler(text='Старт')
+async def start_quiz(message: types.Message):
+	await message.answer("Чего ждать приступим!", reply_markup=types.ReplyKeyboardRemove())
+	
+
 
 
 # def register_handlers_use(dp: Dispatcher):
