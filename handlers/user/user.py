@@ -5,6 +5,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from filters.users import NewUser, FirstQuiz
 from keyboards.common import btn_start_cancel
+from keyboards.inline import cancel_button, kb_start_stop
 from loader import dp
 
 
@@ -12,14 +13,14 @@ from loader import dp
 @dp.message_handler(commands='sign', state=None)
 async def create_user(message: types.Message):
 	await NewUser.name.set()
-	await message.answer("Введите имя в формате ФИО на русском", reply_markup=btn_start_cancel)
+	await message.answer("Введите имя в формате ФИО на русском", reply_markup=cancel_button)
 	
 	
-@dp.message_handler(Text(equals="Отмена"), state=NewUser)
-async def cancel(message: types.Message, state: FSMContext):
+@dp.callback_query_handler(text_contains='Отмена', state=NewUser)
+async def cancel(call: types.CallbackQuery, state: FSMContext):
 	"""Отмена регистрации"""
-	await message.answer("Вы отказались от регистрации, а жаль\
-	на есть чему вас научить", reply_markup=types.ReplyKeyboardRemove())
+	await call.answer("Вы отказались от регистрации, жаль нам есть чему вас научить", show_alert=True)
+	await call.message.edit_reply_markup()
 	await state.reset_state()
 
 
@@ -43,27 +44,21 @@ async def load_position(message: types.Message, state: FSMContext):
 	await state.finish()
 	await message.answer("Вы успешно зарегистрированы.")
 	await message.answer("Теперь пройдем не большой тест, чтобы узнать проблемные зоны!\
-	Что бы начать тест нажми на кнопу старт, елси нет тогда нажми отмена", reply_markup=btn_start_cancel)
+	Что бы начать тест нажми на кнопу старт, елси нет тогда нажми отмена", reply_markup=kb_start_stop)
 # Конец регитрации
 
 
-# Начало опроса
-@dp.message_handler(Text(equals='Отмена'))
-async def start_quiz(message: types.Message):
-	await message.answer("Вот не задача а вам нужно все таки пройти это!", reply_markup=types.ReplyKeyboardRemove())
-	
-	
-@dp.message_handler(text='Старт')
-async def start_quiz(message: types.Message):
-	await message.answer("Чего ждать приступим!", reply_markup=types.ReplyKeyboardRemove())
-	
+# Выбор подолжит или нет
+@dp.callback_query_handler(text_contains="Не хочу")
+async def down(call: types.CallbackQuery):
+	await call.answer("Вы решели не проходить тестировани, ваш начальный рейтинг: 0", show_alert=True)
+	await call.message.edit_reply_markup()
 
 
+@dp.callback_query_handler(text_contains="Поехали!!!")
+async def down(call: types.CallbackQuery):
+	await call.answer("Тогда чего мы ждем, начнем каждый правильный ответ дает 10 очков")
+	await call.message.edit_reply_markup()
+# Конец выбора
 
-# def register_handlers_use(dp: Dispatcher):
-# 	"""
-# 		регистрация handlers
-# 	"""
-# 	dp.register_message_handler(create_user, commands='sign', state=None)
-# 	dp.register_message_handler(load_name, state=NewUser.name)
-# 	dp.register_message_handler(load_position, state=NewUser.position)
+# Quiz
