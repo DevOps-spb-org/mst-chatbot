@@ -31,6 +31,10 @@ async def load_position(message: types.Message, state: FSMContext):
 	# await message.answer(str(data)) # TODO убрать и не возвращать данные пользователю
 	await state.finish()
 	await message.answer("Вы успешно зарегистрированы.")
+	await message.answer("Теперь пройдем не большой тест, чтобы узнать проблемные зоны!")
+
+
+
 	
 
 
